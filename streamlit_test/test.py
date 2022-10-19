@@ -1,5 +1,7 @@
 import streamlit as st
 from PIL import Image
+import cv2
+import numpy as np
 st.markdown("""
     # Đây là bài tutorial
     ## 1. Giới thiệu streamlit
@@ -32,8 +34,18 @@ if button:
         st.text_input("Kết quả:",float(a_value) * float(b_value))
     if operator =='Chia':
         st.text_input("Kết quả:",float(a_value) / float(b_value))
-uploaded_file = st.file_uploader("Choose a file")
+uploaded_file = st.file_uploader("Chọn ảnh")
 if uploaded_file is not None:
     # To read file as bytes:
     bytes_data = uploaded_file.getvalue()
-    st.write(bytes_data)
+    # st.write(bytes_data)
+    
+    with open(uploaded_file.name, 'wb') as f:
+        f.write(bytes_data)
+    img = cv2.imread(uploaded_file.name)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    filer = np.array([[0, 0, 0],
+                    [0, 1, 0],
+                    [0, 0, 0]])
+    result = cv2.filter2D(img, -1, filter)
+    st.image(Image.fromarray(img))
