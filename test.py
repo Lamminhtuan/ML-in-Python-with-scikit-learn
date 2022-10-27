@@ -1,5 +1,3 @@
-import math
-
-def sigmoid(x):
-  return 1 / (1 + math.exp(-x))
-print(sigmoid(2))
+import pandas as pd
+df = pd.read_csv('dataset/50_Startups.csv')
+print(len(df.columns[:-1]))
