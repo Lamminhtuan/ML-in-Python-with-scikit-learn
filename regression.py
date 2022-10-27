@@ -1,7 +1,9 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -9,6 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 features = []
 isnumber = features
+st.write('**Lâm Minh Tuấn - 20520843**')
 uploaded_file = st.file_uploader("Chọn file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
@@ -37,13 +40,40 @@ if uploaded_file is not None:
     if usekfold:
         number = st.number_input("Chọn hệ số k: ", min_value =2, format="%d")
     if st.button("Run"):
-        
-        reg = LinearRegression()
-        reg.fit(X_train, y_train)
-        y_pred = reg.predict(X_test)
-        st.write('Mean squared error: ', mean_squared_error(y_test, y_pred))
-
-            
+        if usekfold:
+            mse_train_list = []
+            mse_test_list = []
+            kf = KFold(number)
+            for train_index, test_index in kf.split(X):
+                X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+                y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+                reg = LinearRegression()
+                reg.fit(X_train, y_train)
+                y_pred_train = reg.predict(X_train)
+                y_pred_test = reg.predict(X_test)
+                mse_train_list.append(mean_squared_error(y_train, y_pred_train))
+                mse_test_list.append(mean_squared_error(y_test, y_pred_test))
+            fig = plt.figure()
+            n = np.arange(len(mse_test_list))
+            plt.bar(n - 0.2, mse_train_list, color='r', width=0.4, label="MSE_Train")
+            plt.bar(n + 0.2, mse_test_list, color='g', width=0.4, label="MSE_Test")
+            plt.xticks(n)
+            plt.legend()
+            st.pyplot(fig)
+        else:
+            reg = LinearRegression()
+            reg.fit(X_train, y_train)
+            y_pred_train = reg.predict(X_train)
+            y_pred_test = reg.predict(X_test)
+            mse_train = mean_squared_error(y_train, y_pred_train)
+            mse_test =  mean_squared_error(y_test, y_pred_test)
+            st.write('Mean squared error on train: ', mse_train)
+            st.write('Mean squared error on test: ', mse_test)
+            fig = plt.figure() 
+            plt.bar('mse_train', mse_train, color='r')
+            plt.bar('mse_test', mse_test, color='g')   
+            st.pyplot(fig)
+                
 
     
     
