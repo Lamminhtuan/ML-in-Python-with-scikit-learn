@@ -8,17 +8,19 @@ uploaded_file = st.file_uploader("Chọn file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     st.write(df.head())
-    st.write("Chose input features:")
-    for i in df.columns[:-1]:
-        if st.checkbox(i):
-            features.append(i)
+    st.write("Chose input features: ")
+    with st.container():
+        for i in df.columns[:-1]:
+            if st.checkbox(i):
+                features.append(i)
+
     X = df[features]
     y = df[df.columns[-1]]
     st.write("Output: ", df.columns[-1])
-    split = st.number_input("Nhập hệ số chia train và test: ", min_value = 0.01, max_value = 1.0, format=float)
+    split = st.number_input("Nhập hệ số chia train và test: ", min_value = 0.1, max_value = 1.0)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = split)
     if st.checkbox("KFold: "):
-        number = st.number_input("Chọn hệ số k: ")
+        number = st.number_input("Chọn hệ số k: ", min_value =2, format="%d")
     if st.button("Run"):
         st.write("Waiting")
         
