@@ -22,8 +22,7 @@ if uploaded_file is not None:
     for i, c in enumerate(cols):
         if c.checkbox(df.columns[i]):
             features.append(df.columns[i])
-    
-    isnumber = features
+    isnumber = features.copy()
     X = df[features]
     y = df[df.columns[-1]]
     st.write("Output: ", df.columns[-1])
@@ -33,9 +32,6 @@ if uploaded_file is not None:
                 one_hot = pd.get_dummies(X[i])
                 X = X.drop(i, axis=1)
                 X = X.join(one_hot)
-    st.write(features)
-    st.write(X)
-    st.write(isnumber)
     left, right = st.columns(2)
     with left:
         st.write('##')
