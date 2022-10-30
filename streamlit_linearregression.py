@@ -9,6 +9,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 features = []
 st.write('**Lâm Minh Tuấn - 20520843**')
 uploaded_file = st.file_uploader("Chose file:")
@@ -40,8 +41,9 @@ if uploaded_file is not None:
         t_size = st.number_input('', min_value = 0.1, max_value = 1.0, value = 0.25)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = t_size, random_state = 42)
     ct = ColumnTransformer([('scale', StandardScaler(), isnumber)], remainder = 'passthrough')
-    X_train = ct.fit_transform(X_train)
-    X_test = ct.fit_transform(X_test)
+    scaler = ct.fit(X_train)
+    X_train = scaler.transform(X_train)
+    X_test = scaler.transform(X_test)
     usekfold = st.checkbox("KFold: ")
     left, right = st.columns(2)
     with left:
@@ -54,6 +56,8 @@ if uploaded_file is not None:
         if usekfold:
             mse_train_list = []
             mse_test_list = []
+            mae_train_list = []
+            mae_test_list = []
             kf = KFold(k)
             for train_index, test_index in kf.split(X):
                 X_train, X_test = X.iloc[train_index], X.iloc[test_index]
