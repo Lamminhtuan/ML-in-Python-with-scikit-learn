@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
@@ -9,35 +8,21 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import f1_score
+from sklearn.metrics import log_loss
 features = []
-st.write('**Lâm Minh Tuấn - 20520843**')
+st.write('**Lâm Minh Tuấn - 20520843 - Logistic Regression**')
 uploaded_file = st.file_uploader("Chose file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     st.write(df.head())
     df = df.dropna()
     st.write("Chose input features: ")
-    nrows = int(np.ceil(len(df.columns[:-1]) / 4))
-    
-    rows = [st.columns(4) for _ in range(nrows)]
-    cols = [column for row in rows for column in row]
-    left, right = st.columns(2)
-    with left:
-        selectall = st.button('Select All')
-    with right:
-        delselect = st.button('Deselect All')
-    
-    for i, col in enumerate(cols):
-        if i >= len(df.columns[:-1]):
-            col.empty()
-        else:
-            if col.checkbox(df.columns[i]):
-
-                features.append(df.columns[i])
-   
-    
+    ncols = len(df.columns[:-1])
+    cols = st.columns(ncols)
+    for i, c in enumerate(cols):
+        if c.checkbox(df.columns[i]):
+            features.append(df.columns[i])
     isnumber = features.copy()
     X = df[features]
     y = df[df.columns[-1]]
@@ -70,13 +55,18 @@ if uploaded_file is not None:
     with right:
         if usekfold:
             k = st.number_input('', min_value =2, format="%d")
+    left, right = st.columns(2)
+    with left:
+        f1 = st.checkbox('F1 Score')
+    with right:
+        log = st.checkbox('Log Loss')
     if st.button("Run"):
         if usekfold:
-            mse_train_list = []
-            mse_test_list = []
-            mae_train_list = []
-            mae_test_list = []
             
+            f1_train_list = []
+            f1_test_list = []
+            log_train_list = []
+            log_test_list = []
             kf = KFold(k)
             for train_index, test_index in kf.split(X):
                 X_train, X_test = X.iloc[train_index], X.iloc[test_index]
@@ -85,21 +75,16 @@ if uploaded_file is not None:
                 reg.fit(X_train, y_train)
                 y_pred_train = reg.predict(X_train)
                 y_pred_test = reg.predict(X_test)
-                mse_train_list.append(mean_squared_error(y_train, y_pred_train))
-                mse_test_list.append(mean_squared_error(y_test, y_pred_test))
-                mae_train_list.append(mean_absolute_error(y_train, y_pred_train))
-                mae_test_list.append(mean_absolute_error(y_test, y_pred_test))
-            mse_avg_train = sum(mse_train_list) / len(mse_train_list)
-            mse_avg_test = sum(mse_test_list) / len(mse_test_list)
-            mae_avg_train = sum(mae_train_list) / len(mae_train_list)
-            mae_avg_test = sum(mae_test_list) / len(mae_test_list)
-            
+                f1_train_list.append(mean_squared_error(y_train, y_pred_train))
+                f1_test_list.append(mean_squared_error(y_test, y_pred_test))
+                log_train_list.append(mean_absolute_error(y_train, y_pred_train))
+                log_test_list.append(mean_absolute_error(y_test, y_pred_test))
             fig_mse = plt.figure()
             n = np.arange(len(mse_test_list))
             plt.bar(n - 0.2, mse_train_list, color='r', width=0.4, label="MSE_Train")
             plt.bar(n + 0.2, mse_test_list, color='g', width=0.4, label="MSE_Test")
             plt.ylabel('MSE')
-            plt.xlabel('Folds')
+            plt.xlabel('Subsets')
             plt.title('Mean squared error')
             plt.xticks(n)
             plt.legend()
@@ -111,25 +96,12 @@ if uploaded_file is not None:
             plt.bar(n_ - 0.2, mae_train_list, color='r', width=0.4, label="MAE_Train")
             plt.bar(n_ + 0.2, mae_test_list, color='g', width=0.4, label="MAE_Test")
             plt.ylabel('MAE')
-            plt.xlabel('Folds')
+            plt.xlabel('Subsets')
             plt.title('Mean absolute error')
             plt.xticks(n_)
             plt.legend()
+            
             st.pyplot(fig_mae)
-            fig_mse_avg = plt.figure()
-            plt.bar('mse_avg_train', mse_avg_train, color='r')
-            plt.bar('mse_avg_test', mse_avg_test, color='g')   
-            plt.ylabel('MSE')
-            plt.xlabel('Train and test datasets')
-            plt.title('Average Mean squared error of Folds')
-            st.pyplot(fig_mse_avg)
-            fig_mae_avg = plt.figure()
-            plt.bar('mae_avg_train', mae_avg_train, color='r')
-            plt.bar('mae_avg_test', mae_avg_test, color='g')   
-            plt.ylabel('MAE')
-            plt.xlabel('Train and test datasets')
-            plt.title('Average Mean absolute error of Folds')
-            st.pyplot(fig_mae_avg)
         else:
             reg = LinearRegression()
             reg.fit(X_train, y_train)
