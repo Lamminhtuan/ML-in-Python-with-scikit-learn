@@ -115,7 +115,7 @@ if uploaded_file is not None:
                 plt.ylabel('Precision')
                 plt.xlabel('Folds')
                 plt.title('Precision of Folds')
-                plt.xticks(n)
+                # plt.xticks(n)
                 plt.legend()
                 st.pyplot(fig_pre)
                 fig_pre_avg = plt.figure()

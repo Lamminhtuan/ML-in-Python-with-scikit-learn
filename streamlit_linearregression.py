@@ -51,12 +51,12 @@ if uploaded_file is not None:
         tr_size = st.number_input('', min_value = 0.1, max_value = 1.0, value = 0.8)
         t_size = 1 - tr_size
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = t_size, random_state = 42)
-    usekfold = st.checkbox("KFold: ")
+    usekfold = st.checkbox("K-Fold cross-validation")
     if usekfold:
         left, right = st.columns(2)
         with left:
             st.write('##')
-            st.write('Enter k for KFold cross-validation: ')
+            st.write('Enter k for K-Fold cross-validation: ')
         with right:
             k = st.number_input('', min_value =2, format="%d")
     left, right = st.columns(2)
