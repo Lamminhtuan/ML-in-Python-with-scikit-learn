@@ -10,10 +10,12 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import log_loss
 features = []
+#Function to check all features checkboxes
 def check():
     for i in range(len(df.columns[:-1])):
         st.session_state[str(i)] = True
     return
+#Function to uncheck all features checkboxes
 def uncheck():
     for i in range(len(df.columns[:-1])):
         st.session_state[str(i)] = False
