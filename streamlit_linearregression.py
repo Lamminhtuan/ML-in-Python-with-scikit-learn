@@ -11,6 +11,16 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 features = []
+def check():
+    for i in range(len(df.columns[:-1])):
+        st.session_state[str(i)] = True
+    return
+def uncheck():
+    for i in range(len(df.columns[:-1])):
+
+        st.session_state[str(i)] = False
+        
+    return
 st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Linear Regression**')
 uploaded_file = st.file_uploader("Chose file:")
 if uploaded_file is not None:
@@ -23,18 +33,20 @@ if uploaded_file is not None:
     cols = [column for row in rows for column in row]
     left, right = st.columns(2)
     with left:
-        selectall = st.button('Select All')
+        selectall = st.button('Select All', on_click=check)
     with right:
-        delselect = st.button('Deselect All')
+        delselect = st.button('Deselect All', on_click=uncheck)
     for i, col in enumerate(cols):
         if i >= len(df.columns[:-1]):
             col.empty()
         else:
-            if col.checkbox(df.columns[i]):
+            chb = col.checkbox(df.columns[i], key=str(i))
+            if chb:
                 features.append(df.columns[i])
     isnumber = features.copy()
     X = df[features]
     y = df[df.columns[-1]]
+    
     st.write("Output: ", df.columns[-1])
     #one hot encoding for categorial features
     for i in features:
