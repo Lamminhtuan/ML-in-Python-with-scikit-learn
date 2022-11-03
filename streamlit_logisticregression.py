@@ -4,12 +4,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import mean_absolute_error
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import preicison_score
+from sklearn.metrics import log_loss
 features = []
 def check():
     for i in range(len(df.columns[:-1])):
@@ -21,7 +20,7 @@ def uncheck():
         st.session_state[str(i)] = False
         
     return
-st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Linear Regression**')
+st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Logistic Regression**')
 uploaded_file = st.file_uploader("Chose file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
@@ -40,8 +39,7 @@ if uploaded_file is not None:
         if i >= len(df.columns[:-1]):
             col.empty()
         else:
-            chb = col.checkbox(df.columns[i], key=str(i))
-            if chb:
+            if col.checkbox(df.columns[i], key=str(i)):
                 features.append(df.columns[i])
     X = df[features]
     y = df[df.columns[-1]]
@@ -57,12 +55,12 @@ if uploaded_file is not None:
         tr_size = st.number_input('', min_value = 0.1, max_value = 1.0, value = 0.8)
         t_size = 1 - tr_size
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = t_size, random_state = 42)
-    #standarize data on non categorial columns
+    
     usekfold = st.checkbox("KFold: ")
     left, right = st.columns(2)
     with left:
         st.write('##')
-        st.write('Enter k for KFold cross-validator: ')
+        st.write('Enter k for KFold cross-validation: ')
     with right:
         if usekfold:
             k = st.number_input('', min_value =2, format="%d")
