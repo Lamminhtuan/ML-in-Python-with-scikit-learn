@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
@@ -20,7 +19,6 @@ if uploaded_file is not None:
     df = df.dropna()
     st.write("Chose input features: ")
     nrows = int(np.ceil(len(df.columns[:-1]) / 4))
-    
     rows = [st.columns(4) for _ in range(nrows)]
     cols = [column for row in rows for column in row]
     left, right = st.columns(2)
@@ -28,16 +26,12 @@ if uploaded_file is not None:
         selectall = st.button('Select All')
     with right:
         delselect = st.button('Deselect All')
-    
     for i, col in enumerate(cols):
         if i >= len(df.columns[:-1]):
             col.empty()
         else:
             if col.checkbox(df.columns[i]):
-
                 features.append(df.columns[i])
-   
-    
     isnumber = features.copy()
     X = df[features]
     y = df[df.columns[-1]]
@@ -76,7 +70,6 @@ if uploaded_file is not None:
             mse_test_list = []
             mae_train_list = []
             mae_test_list = []
-            
             kf = KFold(k)
             for train_index, test_index in kf.split(X):
                 X_train, X_test = X.iloc[train_index], X.iloc[test_index]
@@ -93,7 +86,6 @@ if uploaded_file is not None:
             mse_avg_test = sum(mse_test_list) / len(mse_test_list)
             mae_avg_train = sum(mae_train_list) / len(mae_train_list)
             mae_avg_test = sum(mae_test_list) / len(mae_test_list)
-            
             fig_mse = plt.figure()
             n = np.arange(len(mse_test_list))
             plt.bar(n - 0.2, mse_train_list, color='r', width=0.4, label="MSE_Train")
@@ -104,10 +96,8 @@ if uploaded_file is not None:
             plt.xticks(n)
             plt.legend()
             st.pyplot(fig_mse)
-
             fig_mae = plt.figure()
             n_ = np.arange(len(mae_test_list))
-            
             plt.bar(n_ - 0.2, mae_train_list, color='r', width=0.4, label="MAE_Train")
             plt.bar(n_ + 0.2, mae_test_list, color='g', width=0.4, label="MAE_Test")
             plt.ylabel('MAE')
