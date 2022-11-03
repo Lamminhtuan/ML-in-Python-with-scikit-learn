@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 features = []
-st.write('**Lâm Minh Tuấn - 20520843**')
+st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Linear Regression**')
 uploaded_file = st.file_uploader("Chose file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
