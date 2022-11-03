@@ -14,9 +14,7 @@ def check():
     return
 def uncheck():
     for i in range(len(df.columns[:-1])):
-
         st.session_state[str(i)] = False
-        
     return
 st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Linear Regression**')
 uploaded_file = st.file_uploader("Chose file:")
@@ -53,14 +51,13 @@ if uploaded_file is not None:
         tr_size = st.number_input('', min_value = 0.1, max_value = 1.0, value = 0.8)
         t_size = 1 - tr_size
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = t_size, random_state = 42)
-    
     usekfold = st.checkbox("KFold: ")
-    left, right = st.columns(2)
-    with left:
-        st.write('##')
-        st.write('Enter k for KFold cross-validation: ')
-    with right:
-        if usekfold:
+    if usekfold:
+        left, right = st.columns(2)
+        with left:
+            st.write('##')
+            st.write('Enter k for KFold cross-validation: ')
+        with right:
             k = st.number_input('', min_value =2, format="%d")
     left, right = st.columns(2)
     with left:
@@ -144,7 +141,6 @@ if uploaded_file is not None:
                 plt.xlabel('Train and test datasets')
                 plt.title('Mean squared error')
                 st.pyplot(fig_mse)
-              
             if btn_mae:
                 st.write('Mean absolute error on train dataset: ', mae_train)
                 st.write('Mean absolute error on test dataset: ', mae_test)

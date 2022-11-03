@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.metrics import recall_score
-from sklearn.metrics import preicison_score
+from sklearn.metrics import precision_score
 from sklearn.metrics import log_loss
 features = []
 def check():
@@ -16,9 +16,7 @@ def check():
     return
 def uncheck():
     for i in range(len(df.columns[:-1])):
-
         st.session_state[str(i)] = False
-        
     return
 st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Logistic Regression**')
 uploaded_file = st.file_uploader("Chose file:")
@@ -57,103 +55,175 @@ if uploaded_file is not None:
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = t_size, random_state = 42)
     
     usekfold = st.checkbox("KFold: ")
-    left, right = st.columns(2)
-    with left:
-        st.write('##')
-        st.write('Enter k for KFold cross-validation: ')
-    with right:
-        if usekfold:
+    if usekfold:
+        left, right = st.columns(2)
+        with left:
+            st.write('##')
+            st.write('Enter k for KFold cross-validation: ')
+        with right:
             k = st.number_input('', min_value =2, format="%d")
-    left, right = st.columns(2)
-    with left:
-        btn_mse = st.checkbox('MSE')
-    with right:
-        btn_mae = st.checkbox('MAE')
+    col_1, col_2, col_3, col_4 = st.columns(4)
+    with col_1:
+        btn_pre = st.checkbox('Precision')
+    with col_2:
+        btn_re = st.checkbox('Recall')
+    with col_3:
+        btn_f1 = st.checkbox('F1')
+    with col_4:
+        btn_log = st.checkbox('Log Loss')
     if st.button("Run"):
         if usekfold:
-            mse_train_list = []
-            mse_test_list = []
-            mae_train_list = []
-            mae_test_list = []
+            pre_train_list = []
+            pre_test_list = []
+            re_train_list = []
+            re_test_list = []
+            f1_train_list = []
+            f1_test_list = []
+            log_train_list = []
+            log_test_list = []
             kf = KFold(k)
             for train_index, test_index in kf.split(X):
                 X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                 y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-                reg = LinearRegression()
+                reg = LogisticRegression()
                 reg.fit(X_train, y_train)
                 y_pred_train = reg.predict(X_train)
                 y_pred_test = reg.predict(X_test)
-                mse_train_list.append(mean_squared_error(y_train, y_pred_train))
-                mse_test_list.append(mean_squared_error(y_test, y_pred_test))
-                mae_train_list.append(mean_absolute_error(y_train, y_pred_train))
-                mae_test_list.append(mean_absolute_error(y_test, y_pred_test))
-            mse_avg_train = sum(mse_train_list) / len(mse_train_list)
-            mse_avg_test = sum(mse_test_list) / len(mse_test_list)
-            mae_avg_train = sum(mae_train_list) / len(mae_train_list)
-            mae_avg_test = sum(mae_test_list) / len(mae_test_list)
-            if btn_mse:
-                fig_mse = plt.figure()
-                n = np.arange(len(mse_test_list))
-                plt.bar(n - 0.2, mse_train_list, color='r', width=0.4, label="MSE_Train")
-                plt.bar(n + 0.2, mse_test_list, color='g', width=0.4, label="MSE_Test")
-                plt.ylabel('MSE')
+                pre_train_list.append(precision_score(y_train, y_pred_train))
+                pre_test_list.append(precision_score(y_test, y_pred_test))
+                re_train_list.append(recall_score(y_train, y_pred_train))
+                re_test_list.append(recall_score(y_test, y_pred_test))
+                f1_train_list.append(f1_score(y_train, y_pred_train))
+                f1_test_list.append(f1_score(y_test, y_pred_test))
+                log_train_list.append(log_loss(y_train, y_pred_train))
+                log_test_list.append(log_loss(y_test, y_pred_test))
+            pre_avg_train = sum(pre_train_list) / len(pre_train_list)
+            pre_avg_test = sum(pre_test_list) / len(pre_test_list)
+            re_avg_train = sum(re_train_list) / len(re_train_list)
+            re_avg_test = sum(re_test_list) / len(re_test_list)
+            f1_avg_train = sum(f1_train_list) / len(f1_train_list)
+            f1_avg_test = sum(f1_test_list) / len(f1_test_list)
+            log_avg_train = sum(log_train_list) / len(log_train_list)
+            log_avg_test = sum(log_test_list) / len(log_test_list)
+            n = len(log_test_list)
+            if btn_pre:
+                fig_pre = plt.figure()
+                plt.bar(n - 0.2, pre_train_list, color='r', width=0.4, label="precision_Train")
+                plt.bar(n + 0.2, pre_test_list, color='g', width=0.4, label="precision_Test")
+                plt.ylabel('Precision')
                 plt.xlabel('Folds')
-                plt.title('Mean squared error of Folds')
+                plt.title('Precision of Folds')
                 plt.xticks(n)
                 plt.legend()
-                st.pyplot(fig_mse)
-                fig_mse_avg = plt.figure()
-                plt.bar('mse_avg_train', mse_avg_train, color='r')
-                plt.bar('mse_avg_test', mse_avg_test, color='g')   
-                plt.ylabel('MSE')
+                st.pyplot(fig_pre)
+                fig_pre_avg = plt.figure()
+                plt.bar('precision_avg_train', pre_avg_train, color='r')
+                plt.bar('precision_avg_test', pre_avg_test, color='g')   
+                plt.ylabel('Precision')
                 plt.xlabel('Train and test datasets')
-                plt.title('Average Mean squared error of Folds')
-                st.pyplot(fig_mse_avg)
-            if btn_mae:
-                fig_mae = plt.figure()
-                n_ = np.arange(len(mae_test_list))
-                plt.bar(n_ - 0.2, mae_train_list, color='r', width=0.4, label="MAE_Train")
-                plt.bar(n_ + 0.2, mae_test_list, color='g', width=0.4, label="MAE_Test")
-                plt.ylabel('MAE')
+                plt.title('Average Precision of Folds')
+                st.pyplot(fig_pre_avg)
+            if btn_re:
+                fig_re = plt.figure()
+                plt.bar(n - 0.2, re_train_list, color='r', width=0.4, label="recall_Train")
+                plt.bar(n + 0.2, re_test_list, color='g', width=0.4, label="recall_Test")
+                plt.ylabel('Recall')
                 plt.xlabel('Folds')
-                plt.title('Mean absolute error of Folds')
-                plt.xticks(n_)
+                plt.title('Recall of Folds')
+                plt.xticks(n)
                 plt.legend()
-                st.pyplot(fig_mae)
-                fig_mae_avg = plt.figure()
-                plt.bar('mae_avg_train', mae_avg_train, color='r')
-                plt.bar('mae_avg_test', mae_avg_test, color='g')   
-                plt.ylabel('MAE')
+                st.pyplot(fig_re)
+                fig_re_avg = plt.figure()
+                plt.bar('recall_avg_train', re_avg_train, color='r')
+                plt.bar('recall_avg_test', re_avg_test, color='g')   
+                plt.ylabel('Recall')
                 plt.xlabel('Train and test datasets')
-                plt.title('Average Mean absolute error of Folds')
-                st.pyplot(fig_mae_avg)
+                plt.title('Average Recall of Folds')
+                st.pyplot(fig_re_avg)
+            if btn_f1:
+                fig_f1 = plt.figure()
+                plt.bar(n - 0.2, f1_train_list, color='r', width=0.4, label="f1score_Train")
+                plt.bar(n + 0.2, f1_test_list, color='g', width=0.4, label="f1score_Test")
+                plt.ylabel('F1 Score')
+                plt.xlabel('Folds')
+                plt.title('F1 Score of Folds')
+                plt.xticks(n)
+                plt.legend()
+                st.pyplot(fig_f1)
+                fig_f1_avg = plt.figure()
+                plt.bar('f1score_avg_train', f1_avg_train, color='r')
+                plt.bar('f1score_avg_test', f1_avg_test, color='g')   
+                plt.ylabel('F1 Score')
+                plt.xlabel('Train and test datasets')
+                plt.title('Average F1 Score of Folds')
+                st.pyplot(fig_f1_avg)
+            if btn_log:
+                fig_log = plt.figure()
+                plt.bar(n - 0.2, f1_train_list, color='r', width=0.4, label="logloss_Train")
+                plt.bar(n + 0.2, f1_test_list, color='g', width=0.4, label="logloss_Test")
+                plt.ylabel('Log Loss')
+                plt.xlabel('Folds')
+                plt.title('Log Loss of Folds')
+                plt.xticks(n)
+                plt.legend()
+                st.pyplot(fig_log)
+                fig_log_avg = plt.figure()
+                plt.bar('logloss_avg_train', log_avg_train, color='r')
+                plt.bar('logloss_avg_test', log_avg_test, color='g')   
+                plt.ylabel('Log Loss')
+                plt.xlabel('Train and test datasets')
+                plt.title('Average Log Loss of Folds')
+                st.pyplot(fig_log_avg)
         else:
-            reg = LinearRegression()
+            reg = LogisticRegression()
             reg.fit(X_train, y_train)
             y_pred_train = reg.predict(X_train)
             y_pred_test = reg.predict(X_test)
-            mse_train = mean_squared_error(y_train, y_pred_train)
-            mse_test =  mean_squared_error(y_test, y_pred_test)
-            mae_train = mean_absolute_error(y_train, y_pred_train)
-            mae_test = mean_absolute_error(y_test, y_pred_test)
-            if btn_mse:
-                st.write('Mean squared error on train dataset: ', mse_train)
-                st.write('Mean squared error on test dataset: ', mse_test)
-                fig_mse = plt.figure() 
-                plt.bar('mse_train', mse_train, color='r')
-                plt.bar('mse_test', mse_test, color='g')   
-                plt.ylabel('MSE')
+            pre_train = precision_score(y_train, y_pred_train)
+            pre_test = precision_score(y_test, y_pred_test)
+            re_train = recall_score(y_train, y_pred_train)
+            re_test = recall_score(y_test, y_pred_test)
+            f1_train = f1_score(y_train, y_pred_train)
+            f1_test = f1_score(y_test, y_pred_test)
+            log_train = log_loss(y_train, y_pred_train)
+            log_test = log_loss(y_test, y_pred_test)
+            if btn_pre:
+                st.write('Precision on train dataset: ', pre_train)
+                st.write('Precision on test dataset: ', pre_test)
+                fig_pre = plt.figure() 
+                plt.bar('precision_train', pre_train, color='r')
+                plt.bar('precision_test', pre_test, color='g')   
+                plt.ylabel('Precision')
                 plt.xlabel('Train and test datasets')
-                plt.title('Mean squared error')
-                st.pyplot(fig_mse)
-              
-            if btn_mae:
-                st.write('Mean absolute error on train dataset: ', mae_train)
-                st.write('Mean absolute error on test dataset: ', mae_test)
-                fig_mae = plt.figure() 
-                plt.bar('mae_train', mae_train, color='r')
-                plt.bar('mae_test', mae_test, color='g')   
-                plt.ylabel('MAE')
+                plt.title('Precision')
+                st.pyplot(fig_pre)
+            if btn_re:
+                st.write('Recall on train dataset: ', re_train)
+                st.write('Recall on test dataset: ', re_test)
+                fig_re = plt.figure() 
+                plt.bar('recall_train', re_train, color='r')
+                plt.bar('recall_test', re_test, color='g')   
+                plt.ylabel('Recall')
                 plt.xlabel('Train and test datasets')
-                plt.title('Mean absolute error')
-                st.pyplot(fig_mae)
+                plt.title('Recall')
+                st.pyplot(fig_re) 
+            if btn_f1:
+                st.write('F1 score on train dataset: ', f1_train)
+                st.write('F1 score on test dataset: ', f1_test)
+                fig_f1 = plt.figure() 
+                plt.bar('f1score_train', f1_train, color='r')
+                plt.bar('f1score_test', f1_test, color='g')   
+                plt.ylabel('F1 Score')
+                plt.xlabel('Train and test datasets')
+                plt.title('F1 Score')
+                st.pyplot(fig_f1)
+            if btn_log:
+                st.write('Log loss on train dataset: ', log_train)
+                st.write('Log loss on test dataset: ', log_test)
+                fig_log = plt.figure() 
+                plt.bar('logloss_train', log_train, color='r')
+                plt.bar('logloss_test', log_test, color='g')   
+                plt.ylabel('Log Loss')
+                plt.xlabel('Train and test datasets')
+                plt.title('Log Loss')
+                st.pyplot(fig_log)
