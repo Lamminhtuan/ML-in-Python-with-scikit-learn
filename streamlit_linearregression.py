@@ -7,6 +7,7 @@ from sklearn.model_selection import KFold
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import StandardScaler
 features = []
 def check():
     for i in range(len(df.columns[:-1])):
@@ -39,6 +40,11 @@ if uploaded_file is not None:
                 features.append(df.columns[i])
     X = df[features]
     y = df[df.columns[-1]]
+    needstandarize = features.copy()
+    for i in features:
+        #Standarize the data on number columns and not the order column
+        if pd.to_numeric(X[i], errors='coerce').notnull().all() == False or X[i].is_monotonic_increasing == True:
+            needstandarize.remove(i)
     st.write("Output: ", df.columns[-1])
     #one hot encoding for categorial features
     if features:
@@ -51,6 +57,11 @@ if uploaded_file is not None:
         tr_size = st.number_input('', min_value = 0.1, max_value = 1.0, value = 0.8)
         t_size = 1 - tr_size
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = t_size, random_state = 42)
+    if needstandarize:
+        ct = StandardScaler()
+        ct.fit(X_train[needstandarize])
+        X_train[needstandarize] = ct.transform(X_train[needstandarize])
+        X_test[needstandarize] = ct.transform(X_test[needstandarize])
     usekfold = st.checkbox("K-Fold cross-validation")
     if usekfold:
         left, right = st.columns(2)
