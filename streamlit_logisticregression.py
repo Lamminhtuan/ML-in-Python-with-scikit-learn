@@ -98,7 +98,13 @@ if uploaded_file is not None:
             for train_index, test_index in kf.split(X):
                 X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                 y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-                reg = LogisticRegression()
+                #Standarize the data
+                if needstandarize:
+                    ct = StandardScaler()
+                    ct.fit(X_train[needstandarize])
+                    X_train[needstandarize] = ct.transform(X_train[needstandarize])
+                    X_test[needstandarize] = ct.transform(X_test[needstandarize])
+                reg = LogisticRegression(random_state=42)
                 reg.fit(X_train, y_train)
                 y_pred_train = reg.predict(X_train)
                 y_pred_test = reg.predict(X_test)
@@ -188,7 +194,7 @@ if uploaded_file is not None:
                 plt.title('Average Log Loss of Folds')
                 st.pyplot(fig_log_avg)
         else:
-            reg = LogisticRegression()
+            reg = LogisticRegression(random_state=42)
             reg.fit(X_train, y_train)
             y_pred_train = reg.predict(X_train)
             y_pred_test = reg.predict(X_test)
