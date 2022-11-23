@@ -23,7 +23,7 @@ def uncheck():
     for i in range(len(df.columns[:-1])):
         st.session_state[str(i)] = False
     return
-st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Logistic Regression with optimized PCA**')
+st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Logistic Regression with finding optimized n_components for PCA**')
 uploaded_file = st.file_uploader("Chose file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
@@ -95,7 +95,7 @@ if uploaded_file is not None:
         btn_re = st.checkbox('Recall')
     with col_3:
         btn_f1 = st.checkbox('F1')
-    st.write('Click run to find the best number of features (PCA)')
+    st.write('Click Run to find the best number of features (PCA)')
     if st.button("Run"):
         if features:
             f1_score_avg_plot = []
