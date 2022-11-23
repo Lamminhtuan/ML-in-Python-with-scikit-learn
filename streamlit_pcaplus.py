@@ -6,8 +6,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.metrics import f1_score
+from sklearn.datasets import load_wine
 from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import log_loss
@@ -22,11 +23,13 @@ def uncheck():
     for i in range(len(df.columns[:-1])):
         st.session_state[str(i)] = False
     return
-st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Logistic Regression**')
+st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - Logistic Regression with optimized PCA**')
 uploaded_file = st.file_uploader("Chose file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
+    
     st.write(df.head())
+
     df = df.dropna()
     st.write("Chose input features: ")
     nrows = int(np.ceil(len(df.columns[:-1]) / 4))
@@ -77,8 +80,8 @@ if uploaded_file is not None:
             st.write('Enter k for K-Fold cross-validation: ')
         with right:
             k = st.number_input('', min_value =2, format="%d")
-    pca = st.checkbox('PCA')
-    if pca:
+    usepca = st.checkbox('PCA')
+    if usepca:
         left, right = st.columns(2)
         with left:
             st.write('##')
@@ -92,9 +95,43 @@ if uploaded_file is not None:
         btn_re = st.checkbox('Recall')
     with col_3:
         btn_f1 = st.checkbox('F1')
+    st.write('Click run to find the best number of features (PCA)')
     if st.button("Run"):
-        
         if features:
+            f1_score_avg_plot = []
+            for i in range(1, len(features) + 1):
+                kf = KFold(5)
+                f1_score_fold = []
+                for train_index, test_index in kf.split(X):
+                    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+                    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+                    #Standarize the data
+                    if needstandarize:
+                        ct = StandardScaler()
+                        ct.fit(X_train[needstandarize])
+                        X_train[needstandarize] = ct.transform(X_train[needstandarize])
+                        X_test[needstandarize] = ct.transform(X_test[needstandarize])
+                    pca_ = PCA(n_components=i)
+                    X_train = pca_.fit_transform(X_train)
+                    X_test = pca_.transform(X_test)
+                    reg = LogisticRegression(random_state=42)
+                    reg.fit(X_train, y_train)
+                    y_pred = reg.predict(X_test)
+                    f1_score_fold.append(f1_score(y_test, y_pred, average="weighted"))
+                f1_score_avg_plot.append(sum(f1_score_fold) / len(f1_score_fold))
+            fig_max = plt.figure()
+            
+            n_ = np.arange(1, len(f1_score_avg_plot) + 1)
+            plt.bar(n_, f1_score_avg_plot, color='g', width=0.4, label="F1 Score")
+            plt.ylabel('F1 Score (Micro)')
+            plt.xlabel('Number of features')
+            
+            plt.title('F1 Score (Micro) corresponding to number of features (5 Folds)')
+            plt.xticks(n_)
+            st.pyplot(fig_max)
+            nofmax = max(f1_score_avg_plot)
+            indexmax = f1_score_avg_plot.index(nofmax) + 1
+            st.write(nofmax, 'is the max F1 Score corresponding to', indexmax,' number of features')
             if usekfold:
                 pre_train_list = []
                 pre_test_list = []
@@ -102,7 +139,6 @@ if uploaded_file is not None:
                 re_test_list = []
                 f1_train_list = []
                 f1_test_list = []
-              
                 kf = KFold(k)
                 for train_index, test_index in kf.split(X):
                     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
@@ -110,11 +146,10 @@ if uploaded_file is not None:
                     #Standarize the data
                     if needstandarize:
                         ct = StandardScaler()
-                        
                         ct.fit(X_train[needstandarize])
                         X_train[needstandarize] = ct.transform(X_train[needstandarize])
                         X_test[needstandarize] = ct.transform(X_test[needstandarize])
-                    if pca:
+                    if usepca:
                         pca = PCA(n_components=n_compos)
                         X_train = pca.fit_transform(X_train)
                         X_test = pca.transform(X_test)
@@ -136,7 +171,7 @@ if uploaded_file is not None:
                     re_test_list.append(recall_score(y_test, y_pred_test, average="micro"))
                     f1_train_list.append(f1_score(y_train, y_pred_train, average="micro"))
                     f1_test_list.append(f1_score(y_test, y_pred_test, average="micro"))
-               
+
                 pre_avg_train = sum(pre_train_list) / len(pre_train_list)
                 pre_avg_test = sum(pre_test_list) / len(pre_test_list)
                 re_avg_train = sum(re_train_list) / len(re_train_list)
@@ -145,60 +180,61 @@ if uploaded_file is not None:
                 f1_avg_test = sum(f1_test_list) / len(f1_test_list)
              
                 n = np.arange(len(f1_test_list))
+             
                 if btn_pre:
                     fig_pre = plt.figure()
-                    plt.bar(n - 0.2, pre_train_list, color='r', width=0.4, label="Precision on Training Set")
-                    plt.bar(n + 0.2, pre_test_list, color='g', width=0.4, label="Precision on Test Set")
-                    plt.ylabel('Precision')
+                    plt.bar(n - 0.2, pre_train_list, color='r', width=0.4, label="Precision (Micro) on Training Set")
+                    plt.bar(n + 0.2, pre_test_list, color='g', width=0.4, label="Precision (Micro) on Test Set")
+                    plt.ylabel('Precision (Micro)')
                     plt.xlabel('Folds')
-                    plt.title('Precision of Folds')
+                    plt.title('Precision (Micro) of Folds')
                     plt.xticks(n)
                     plt.legend()
                     st.pyplot(fig_pre)
                     fig_pre_avg = plt.figure()
-                    plt.bar('Average Precision on Training Set', pre_avg_train, color='r')
-                    plt.bar('Average Precision on Test Set', pre_avg_test, color='g')   
-                    plt.ylabel('Precision')
+                    plt.bar('Training Set', pre_avg_train, color='r')
+                    plt.bar('Test Set', pre_avg_test, color='g')   
+                    plt.ylabel('Precision (Micro)')
                     plt.xlabel('Training and Test Datasets')
-                    plt.title('Average Precision of Folds')
+                    plt.title('Average Precision (Micro) of Folds')
                     st.pyplot(fig_pre_avg)
                 if btn_re:
                     fig_re = plt.figure()
-                    plt.bar(n - 0.2, re_train_list, color='r', width=0.4, label="Recall on Training Set")
-                    plt.bar(n + 0.2, re_test_list, color='g', width=0.4, label="Recall on Test Set")
-                    plt.ylabel('Recall')
+                    plt.bar(n - 0.2, re_train_list, color='r', width=0.4, label="Recall (Micro) on Training Set")
+                    plt.bar(n + 0.2, re_test_list, color='g', width=0.4, label="Recall (Micro) on Test Set")
+                    plt.ylabel('Recall (Micro)')
                     plt.xlabel('Folds')
-                    plt.title('Recall of Folds')
+                    plt.title('Recall (Micro) of Folds')
                     plt.xticks(n)
                     plt.legend()
                     st.pyplot(fig_re)
                     fig_re_avg = plt.figure()
-                    plt.bar('Average Recall on Training Set', re_avg_train, color='r')
-                    plt.bar('Average Recall on Test Set', re_avg_test, color='g')   
-                    plt.ylabel('Recall')
+                    plt.bar('Training Set', re_avg_train, color='r')
+                    plt.bar('Test Set', re_avg_test, color='g')   
+                    plt.ylabel('Recall (Micro)')
                     plt.xlabel('Training and Test Datasets')
-                    plt.title('Average Recall of Folds')
+                    plt.title('Average Recall (Micro) of Folds')
                     st.pyplot(fig_re_avg)
                 if btn_f1:
                     fig_f1 = plt.figure()
-                    plt.bar(n - 0.2, f1_train_list, color='r', width=0.4, label="F1 Score on Training Set")
-                    plt.bar(n + 0.2, f1_test_list, color='g', width=0.4, label="F1 Score on Test Set")
-                    plt.ylabel('F1 Score')
+                    plt.bar(n - 0.2, f1_train_list, color='r', width=0.4, label="F1 Score (Micro) on Training Set")
+                    plt.bar(n + 0.2, f1_test_list, color='g', width=0.4, label="F1 Score (Micro) on Test Set")
+                    plt.ylabel('F1 Score (Micro)')
                     plt.xlabel('Folds')
-                    plt.title('F1 Score of Folds')
+                    plt.title('F1 Score (Micro) of Folds')
                     plt.xticks(n)
                     plt.legend()
                     st.pyplot(fig_f1)
                     fig_f1_avg = plt.figure()
-                    plt.bar('Average F1 Score on Training Set', f1_avg_train, color='r')
-                    plt.bar('Average F1 Score on Test Set', f1_avg_test, color='g')   
-                    plt.ylabel('F1 Score')
+                    plt.bar('Training Set', f1_avg_train, color='r')
+                    plt.bar(' Test Set', f1_avg_test, color='g')   
+                    plt.ylabel('F1 Score (Micro)')
                     plt.xlabel('Training and Test Datasets')
-                    plt.title('Average F1 Score of Folds')
+                    plt.title('Average F1 Score (Micro) of Folds')
                     st.pyplot(fig_f1_avg)
        
             else:
-                if pca:
+                if usepca:
                     pca = PCA(n_components=n_compos)
                     X_train = pca.fit_transform(X_train)
                     X_test = pca.transform(X_test)
@@ -221,34 +257,34 @@ if uploaded_file is not None:
                 f1_test = f1_score(y_test, y_pred_test, average="micro")
        
                 if btn_pre:
-                    st.write('Precision on Training Set: ', pre_train)
-                    st.write('Precision on Test Set: ', pre_test)
+                    st.write('Precision (Micro) on Training Set: ', pre_train)
+                    st.write('Precision (Micro) on Test Set: ', pre_test)
                     fig_pre = plt.figure() 
-                    plt.bar('Precision on Training Set', pre_train, color='r')
-                    plt.bar('Precision on Test Set', pre_test, color='g')   
-                    plt.ylabel('Precision')
+                    plt.bar('Training Set', pre_train, color='r')
+                    plt.bar('Test Set', pre_test, color='g')   
+                    plt.ylabel('Precision (Micro)')
                     plt.xlabel('Training and Test Datasets')
-                    plt.title('Precision')
+                    plt.title('Precision (Micro)')
                     st.pyplot(fig_pre)
                 if btn_re:
-                    st.write('Recall on Training Set: ', re_train)
-                    st.write('Recall on Test Set: ', re_test)
+                    st.write('Training Set: ', re_train)
+                    st.write('Test Set: ', re_test)
                     fig_re = plt.figure() 
-                    plt.bar('Recall on Training Set', re_train, color='r')
-                    plt.bar('Recall on Test Set', re_test, color='g')   
-                    plt.ylabel('Recall')
+                    plt.bar('Training Set', re_train, color='r')
+                    plt.bar('Test Set', re_test, color='g')   
+                    plt.ylabel('Recall (Micro)')
                     plt.xlabel('Training and Test Datasets')
-                    plt.title('Recall')
+                    plt.title('Recall (Micro)')
                     st.pyplot(fig_re) 
                 if btn_f1:
-                    st.write('F1 Score on Training Set: ', f1_train)
-                    st.write('F1 Score on Test Set: ', f1_test)
+                    st.write('F1 Score (Micro) on Training Set: ', f1_train)
+                    st.write('F1 Score (Micro) on Test Set: ', f1_test)
                     fig_f1 = plt.figure() 
-                    plt.bar('F1 Score on Training Set', f1_train, color='r')
-                    plt.bar('F1 Score on Test Set', f1_test, color='g')   
-                    plt.ylabel('F1 Score')
+                    plt.bar('Training Set', f1_train, color='r')
+                    plt.bar('Test Set', f1_test, color='g')   
+                    plt.ylabel('F1 Score (Micro)')
                     plt.xlabel('Training and Test Datasets')
-                    plt.title('F1 Score')
+                    plt.title('F1 Score (Micro)')
                     st.pyplot(fig_f1)
 
         else:
