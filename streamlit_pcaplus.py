@@ -117,7 +117,7 @@ if uploaded_file is not None:
                     reg = LogisticRegression(random_state=42)
                     reg.fit(X_train, y_train)
                     y_pred = reg.predict(X_test)
-                    f1_score_fold.append(f1_score(y_test, y_pred, average="weighted"))
+                    f1_score_fold.append(f1_score(y_test, y_pred, average="micro"))
                 f1_score_avg_plot.append(sum(f1_score_fold) / len(f1_score_fold))
             fig_max = plt.figure()
             
@@ -131,7 +131,7 @@ if uploaded_file is not None:
             st.pyplot(fig_max)
             nofmax = max(f1_score_avg_plot)
             indexmax = f1_score_avg_plot.index(nofmax) + 1
-            st.write(nofmax, 'is the max F1 Score corresponding to', indexmax,' number of features')
+            st.write(nofmax, 'is the max F1 Score (Micro) corresponding to', indexmax,' number of features')
             if usekfold:
                 pre_train_list = []
                 pre_test_list = []
