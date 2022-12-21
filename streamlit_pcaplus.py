@@ -6,12 +6,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
+from sklearn import svm
+from sklearn.tree import DecisionTree
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.metrics import f1_score
 from sklearn.datasets import load_wine
 from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import log_loss
+import xgboost as xgb
 features = []
 #Function to check all features checkboxes
 def check():
