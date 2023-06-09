@@ -29,7 +29,7 @@ def uncheck():
     for i in range(len(df.columns[:-1])):
         st.session_state[str(i)] = False
     return
-st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - XGBoosting**')
+st.markdown('**Lâm Minh Tuấn - 20520843 - CS116.N11 - XGBoost**')
 uploaded_file = st.file_uploader("Chose file:")
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
